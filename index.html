@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="같은 캐릭터로 만드는 SNS 밈 짤 편집기">
+  <title>Meme Studio — 밈 짤 편집기</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand">Meme Studio</div>
+      <div class="subtitle">같은 캐릭터, 다른 감정. 내 마음대로 만드는 밈.</div>
+    </div>
+    <div class="top-actions">
+      <button id="newBtn" class="ghost">새 밈</button>
+      <button id="saveTemplateBtn" class="ghost">템플릿 저장</button>
+      <button id="downloadBtn" class="primary">PNG 저장</button>
+    </div>
+  </header>
+
+  <main class="app">
+    <section class="left-resource-area">
+      <div class="resource-header">
+        <div>
+          <strong>밈 요소</strong>
+          <span>필요한 요소를 클릭해서 캔버스에 추가하세요.</span>
+        </div>
+        <div class="ratio-control" aria-label="화면비 선택">
+          <span class="ratio-label">화면비</span>
+          <button class="ratio-btn active" data-ratio="1:1">1:1</button>
+          <button class="ratio-btn" data-ratio="4:5">4:5</button>
+          <button class="ratio-btn" data-ratio="9:16">9:16</button>
+          <span id="canvasSizeLabel" class="canvas-size-label">1080 × 1080</span>
+        </div>
+      </div>
+
+      <div class="resource-panels">
+        <section class="panel resource-panel character-panel">
+          <div class="panel-title-row">
+            <div>
+              <h2>캐릭터 표정</h2>
+              <p class="hint">포즈는 동일하고 표정만 교체됩니다.</p>
+            </div>
+          </div>
+          <div id="characterGrid" class="character-grid"></div>
+        </section>
+
+        <section class="panel resource-panel add-panel">
+          <h2>요소 추가</h2>
+          <div class="button-stack">
+            <button id="addTextBtn">＋ 문구 추가</button>
+            <button id="addEmojiBtn">＋ 감정 이모지</button>
+            <label class="upload-btn">＋ 파일 업로드 (PNG / JPEG / WEBP / SVG)<input id="imageUpload" type="file" multiple hidden></label>
+            <div id="uploadStatus" class="upload-status" role="status" aria-live="polite">파일 선택창에서는 모든 파일을 볼 수 있습니다. 실제 추가는 PNG, JPEG, WEBP, SVG만 지원합니다.</div>
+          </div>
+          <div class="emoji-row" id="emojiRow"></div>
+          <h3>배경</h3>
+          <div class="swatches" id="backgroundSwatches"></div>
+        </section>
+
+        <section class="panel resource-panel sticker-panel">
+          <div class="panel-title-row">
+            <div>
+              <h2>감정 스티커</h2>
+              <p class="hint">SVG 스티커를 클릭하면 캔버스에 추가됩니다.</p>
+            </div>
+          </div>
+          <div id="stickerGrid" class="sticker-grid"></div>
+        </section>
+
+        <section class="panel resource-panel phrase-panel">
+          <div class="panel-title-row">
+            <div>
+              <h2>기본 문구</h2>
+              <p class="hint">짧고 가벼운 인터넷 말투를 클릭하면 바로 편집할 수 있습니다.</p>
+            </div>
+          </div>
+          <div class="chips" id="resourcePhraseChips"></div>
+          <h3>밈 문구 예시</h3>
+          <div class="chips" id="phraseChips"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="1080" height="1080"></canvas>
+      </div>
+      <div class="workspace-tip">요소를 클릭한 뒤 드래그하세요. 모서리 핸들로 크기를 바꾸고 회전할 수 있습니다. 텍스트를 두 번 클릭하면 내용을 수정할 수 있습니다. 화면비를 바꾸면 현재 이미지·문구의 상대적인 배치를 유지한 채 캔버스에 맞춰집니다.</div>
+    </section>
+
+    <aside class="sidebar right">
+      <section class="panel inspector">
+        <h2>선택한 요소</h2>
+        <div id="emptyInspector" class="empty">요소를 선택하면 편집 도구가 나타납니다.</div>
+        <div id="inspectorControls" class="hidden">
+          <label>이름<input id="objectName" type="text"></label>
+          <div class="two-col">
+            <label>X<input id="posX" type="number"></label>
+            <label>Y<input id="posY" type="number"></label>
+          </div>
+          <div class="two-col">
+            <label>가로<input id="objWidth" type="number" min="1"></label>
+            <label>세로<input id="objHeight" type="number" min="1"></label>
+          </div>
+          <div class="two-col">
+            <label>각도<input id="objAngle" type="number"></label>
+            <label>투명도<input id="objOpacity" type="range" min="0" max="100" value="100"></label>
+          </div>
+          <label id="colorControl">색상<input id="objColor" type="color" value="#111827"></label>
+          <div class="button-grid">
+            <button id="frontBtn">맨 앞으로</button>
+            <button id="backBtn">맨 뒤로</button>
+            <button id="duplicateBtn">복제</button>
+            <button id="deleteBtn" class="danger">삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title-row">
+          <div>
+            <h2>레이어</h2>
+            <span class="panel-count" id="layerCount">0</span>
+          </div>
+        </div>
+        <div id="layers" class="layers"></div>
+      </section>
+
+      <section class="panel templates-panel">
+        <div class="panel-title-row">
+          <div>
+            <h2>내 템플릿</h2>
+            <p class="hint">이 브라우저에 최대 3개까지 저장하고 다시 불러올 수 있습니다.</p>
+          </div>
+          <span class="panel-count" id="templateCount">0/3</span>
+        </div>
+        <div id="templateSlots" class="template-slots"></div>
+        <div class="template-note">템플릿은 별도 서버가 없어도 이 브라우저에 저장됩니다.</div>
+      </section>
+
+      <section class="panel quick-help">
+        <h2>빠른 사용법</h2>
+        <div class="help-grid">
+          <div><kbd>드래그</kbd><span>이동</span></div>
+          <div><kbd>모서리</kbd><span>크기 변경</span></div>
+          <div><kbd>회전점</kbd><span>회전</span></div>
+          <div><kbd>더블클릭</kbd><span>문구 수정</span></div>
+          <div><kbd>Delete</kbd><span>삭제</span></div>
+          <div><kbd>Ctrl+D</kbd><span>복제</span></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
